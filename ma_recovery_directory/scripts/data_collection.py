@@ -5,6 +5,7 @@ Main data collection script for Massachusetts Recovery Services Directory
 
 import argparse
 import logging
+import logging.config
 import sys
 from pathlib import Path
 import pandas as pd
@@ -16,11 +17,12 @@ sys.path.append(str(Path(__file__).parent.parent))
 from data_collection.scrapers.helpline_ma_scraper import HelplineMAScraper
 from data_collection.scrapers.bsas_scraper import BSASLicensingScraper
 from data_collection.scrapers.samhsa_scraper import SAMHSATreatmentLocatorScraper
+from data_collection.scrapers.peer_recovery_scraper import PeerRecoveryCentersScraper
 from data_collection.processors.data_processor import RecoveryServicesDataProcessor
 from config.settings import DATABASE_CONFIG, LOGGING_CONFIG, DATA_DIR
 
 # Configure logging
-logging.basicConfig(**LOGGING_CONFIG)
+logging.config.dictConfig(LOGGING_CONFIG)
 logger = logging.getLogger(__name__)
 
 
@@ -30,7 +32,8 @@ class DataCollectionManager:
         self.scrapers = {
             'helpline_ma': HelplineMAScraper(),
             'bsas': BSASLicensingScraper(),
-            'samhsa': SAMHSATreatmentLocatorScraper()
+            'samhsa': SAMHSATreatmentLocatorScraper(),
+            'peer_recovery': PeerRecoveryCentersScraper()
         }
     
     def collect_all_data(self):
@@ -48,6 +51,8 @@ class DataCollectionManager:
                     raw_data = scraper.scrape_licensed_providers()
                 elif source_name == 'samhsa':
                     raw_data = scraper.search_massachusetts_providers()
+                elif source_name == 'peer_recovery':
+                    raw_data = scraper.scrape_all_centers()
                 
                 # Normalize data
                 normalized_df = self.processor.normalize_data(raw_data, source_name)
@@ -120,6 +125,8 @@ class DataCollectionManager:
                 raw_data = scraper.scrape_licensed_providers()
             elif source_name == 'samhsa':
                 raw_data = scraper.search_massachusetts_providers()
+            elif source_name == 'peer_recovery':
+                raw_data = scraper.scrape_all_centers()
             
             # Normalize data
             normalized_df = self.processor.normalize_data(raw_data, source_name)
@@ -138,7 +145,7 @@ class DataCollectionManager:
 
 def main():
     parser = argparse.ArgumentParser(description='Collect Massachusetts recovery services data')
-    parser.add_argument('--source', choices=['helpline_ma', 'bsas', 'samhsa', 'all'], 
+    parser.add_argument('--source', choices=['helpline_ma', 'bsas', 'samhsa', 'peer_recovery', 'all'],
                        default='all', help='Data source to collect from')
     parser.add_argument('--output', help='Output filename (optional)')
     parser.add_argument('--dry-run', action='store_true', 

@@ -38,7 +38,9 @@ class RecoveryServicesDataProcessor:
             normalized.update(self._normalize_bsas(record))
         elif source == 'samhsa':
             normalized.update(self._normalize_samhsa(record))
-        
+        elif source == 'peer_recovery':
+            normalized.update(self._normalize_peer_recovery(record))
+
         return normalized
     
     def _normalize_helpline_ma(self, record: Dict) -> Dict:
@@ -52,7 +54,27 @@ class RecoveryServicesDataProcessor:
     def _normalize_samhsa(self, record: Dict) -> Dict:
         """Normalize SAMHSA data"""
         return {}
-    
+
+    def _normalize_peer_recovery(self, record: Dict) -> Dict:
+        """Normalize Peer Recovery Centers data"""
+        # Peer recovery scraper already returns data in normalized format
+        return {
+            'name': record.get('name', ''),
+            'address': record.get('address', ''),
+            'city': record.get('city', ''),
+            'state': record.get('state', 'MA'),
+            'zip_code': record.get('zip_code', ''),
+            'phone': record.get('phone', ''),
+            'email': record.get('email', ''),
+            'website': record.get('website', ''),
+            'service_types': ', '.join(record.get('service_types', [])) if isinstance(record.get('service_types'), list) else record.get('service_types', ''),
+            'hours': record.get('hours', ''),
+            'populations_served': ', '.join(record.get('populations_served', [])) if isinstance(record.get('populations_served'), list) else record.get('populations_served', ''),
+            'languages': ', '.join(record.get('languages', [])) if isinstance(record.get('languages'), list) else record.get('languages', ''),
+            'eligibility': record.get('eligibility', ''),
+            'payment_options': ''
+        }
+
     def deduplicate_providers(self, df: pd.DataFrame) -> pd.DataFrame:
         """Remove duplicate providers based on name and address"""
         return df.drop_duplicates(subset=['name', 'address'], keep='first')
