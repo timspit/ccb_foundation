@@ -1,0 +1,92 @@
+# Data sources configuration for Massachusetts Recovery Services Directory
+
+data_sources:
+  helpline_ma:
+    name: "Massachusetts Substance Use Helpline"
+    url: "https://helplinema.org"
+    description: "Official Massachusetts substance use helpline directory"
+    contact_email: "info@helplinema.org"
+    update_frequency: "quarterly"
+    fields:
+      - name
+      - address
+      - phone
+      - email
+      - website
+      - services
+      - hours
+      - populations_served
+      - languages
+    
+  bsas:
+    name: "BSAS Licensing Database"
+    url: "https://www.mass.gov/orgs/bureau-of-substance-addiction-services"
+    description: "Massachusetts Bureau of Substance Addiction Services licensing database"
+    contact_email: "bsas@mass.gov"
+    update_frequency: "monthly"
+    fields:
+      - license_number
+      - license_type
+      - provider_name
+      - address
+      - services_authorized
+      - license_status
+      - expiration_date
+    
+  samhsa:
+    name: "SAMHSA Behavioral Health Treatment Locator"
+    url: "https://findtreatment.gov"
+    api_url: "https://findtreatment.gov/api"
+    description: "Federal treatment locator database"
+    contact_email: "info@samhsa.hhs.gov"
+    update_frequency: "weekly"
+    fields:
+      - provider_id
+      - name
+      - address
+      - phone
+      - website
+      - services
+      - payment_options
+      - age_groups
+      - special_programs
+      - languages
+    
+  peer_recovery_centers:
+    name: "BSAS Peer Recovery Support Centers"
+    url: "https://www.mass.gov"
+    description: "Peer recovery support center listings from BSAS"
+    contact_email: "bsas@mass.gov"
+    update_frequency: "quarterly"
+    fields:
+      - center_name
+      - address
+      - phone
+      - email
+      - website
+      - services_offered
+      - hours
+      - regions_served
+
+# Data collection settings
+collection_settings:
+  max_retries: 3
+  request_delay: 1  # seconds between requests
+  timeout: 30  # seconds
+  user_agent: "MA-Recovery-Directory/1.0"
+  
+# Data quality settings
+quality_settings:
+  required_fields:
+    - name
+    - phone
+  validation_rules:
+    phone_format: "^\\(\\d{3}\\) \\d{3}-\\d{4}$"
+    zip_code_format: "^\\d{5}(-\\d{4})?$"
+    email_format: "^[\\w\\.-]+@[\\w\\.-]+\\.\\w+$"
+  
+# Update schedule
+update_schedule:
+  full_refresh: "monthly"
+  incremental_update: "weekly"
+  source_verification: "quarterly"

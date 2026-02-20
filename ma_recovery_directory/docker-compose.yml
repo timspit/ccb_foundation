@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+      - /app/__pycache__
+      - /app/.pytest_cache
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - PYTHONPATH=/app
+    depends_on:
+      - redis
+    networks:
+      - recovery-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - recovery-network
+    restart: unless-stopped
+
+  # Optional: Add a database if needed later
+  # postgres:
+  #   image: postgres:15-alpine
+  #   environment:
+  #     POSTGRES_DB: recovery_directory
+  #     POSTGRES_USER: recovery_user
+  #     POSTGRES_PASSWORD: recovery_password
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   networks:
+  #     - recovery-network
+  #   restart: unless-stopped
+
+volumes:
+  redis_data:
+  # postgres_data:
+
+networks:
+  recovery-network:
+    driver: bridge
+
