@@ -3,10 +3,12 @@
 # Web Framework
 Flask==2.3.3
 Werkzeug==2.3.7
+gunicorn==21.2.0
 
 # Data Processing
 pandas==2.1.0
 numpy==1.24.3
+pgeocode
 
 # Web Scraping
 requests==2.31.0
@@ -36,9 +38,3 @@ pytest-cov==4.1.0
 black==23.9.1
 flake8==6.0.0
 
-# Optional: Database support (if needed later)
-# SQLAlchemy==2.0.21
-# sqlite3 (built-in)
-
-# Optional: Advanced web scraping (if needed)
-# scrapy==2.11.0

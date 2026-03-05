@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}Map — MA Recovery Directory{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+<style>
+    #map-wrapper {
+        display: flex;
+        height: calc(100vh - 56px);
+        overflow: hidden;
+    }
+    #map-sidebar {
+        width: 320px;
+        min-width: 280px;
+        overflow-y: auto;
+        border-right: 1px solid #dee2e6;
+        background: #fff;
+        flex-shrink: 0;
+    }
+    #map {
+        flex: 1;
+    }
+    .provider-list-item {
+        cursor: pointer;
+        border-left: 3px solid transparent;
+        transition: border-color 0.15s, background 0.15s;
+    }
+    .provider-list-item:hover, .provider-list-item.active {
+        border-left-color: #0d6efd;
+        background: #f0f4ff;
+    }
+    .provider-list-item .name {
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+    .provider-list-item .meta {
+        font-size: 0.75rem;
+        color: #6c757d;
+    }
+    @media (max-width: 768px) {
+        #map-wrapper { flex-direction: column; height: auto; }
+        #map-sidebar { width: 100%; height: 260px; border-right: none; border-bottom: 1px solid #dee2e6; }
+        #map { height: 60vh; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="map-wrapper">
+
+    <!-- Sidebar -->
+    <div id="map-sidebar">
+        <div class="p-3 border-bottom bg-light">
+            <div class="fw-semibold mb-2"><i class="bi bi-map me-1"></i>Recovery Services Map</div>
+            <input type="text" id="mapSearch" class="form-control form-control-sm"
+                   placeholder="Filter by name or city...">
+            <div class="mt-2">
+                <select class="form-select form-select-sm" id="mapServiceType">
+                    <option value="">All Service Types</option>
+                    <option value="Inpatient">Inpatient</option>
+                    <option value="Outpatient">Outpatient</option>
+                    <option value="Detox">Detox</option>
+                    <option value="Residential">Residential</option>
+                    <option value="Opioid Treatment">Opioid Treatment</option>
+                    <option value="Peer Support">Peer Support</option>
+                </select>
+            </div>
+            <div class="mt-1 text-muted small" id="mapResultCount"></div>
+        </div>
+        <div id="providerList"></div>
+    </div>
+
+    <!-- Map -->
+    <div id="map"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+    const map = L.map('map').setView([42.36, -71.06], 8);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 18,
+    }).addTo(map);
+
+    const markerCluster = L.markerClusterGroup({ maxClusterRadius: 40 });
+    map.addLayer(markerCluster);
+
+    let allFeatures = [];
+    let markers = {};       // id -> L.Marker
+    let activeId = null;
+
+    // If URL has a #id hash, pan to that provider on load
+    const hashId = parseInt(window.location.hash.slice(1));
+
+    fetch('/api/providers')
+        .then(r => r.json())
+        .then(geojson => {
+            allFeatures = geojson.features || [];
+            renderProviders(allFeatures);
+
+            if (!isNaN(hashId)) {
+                const target = allFeatures.find(f => f.properties.id === hashId);
+                if (target) {
+                    const [lng, lat] = target.geometry.coordinates;
+                    map.setView([lat, lng], 14);
+                    const m = markers[hashId];
+                    if (m) { m.openPopup(); highlightListItem(hashId); }
+                }
+            }
+        })
+        .catch(() => console.error('Failed to load providers'));
+
+    function renderProviders(features) {
+        markerCluster.clearLayers();
+        markers = {};
+        document.getElementById('providerList').innerHTML = '';
+        document.getElementById('mapResultCount').textContent =
+            `${features.length} provider${features.length !== 1 ? 's' : ''}`;
+
+        features.forEach(f => {
+            const p = f.properties;
+            const [lng, lat] = f.geometry.coordinates;
+
+            const marker = L.marker([lat, lng]);
+            marker.bindPopup(buildPopup(p), { maxWidth: 260 });
+            marker.on('click', () => { activeId = p.id; highlightListItem(p.id); });
+            markers[p.id] = marker;
+            markerCluster.addLayer(marker);
+
+            const item = document.createElement('div');
+            item.className = 'provider-list-item px-3 py-2 border-bottom';
+            item.dataset.id = p.id;
+            item.innerHTML = `
+                <div class="name">${esc(p.name)}</div>
+                <div class="meta">${esc(p.city)}, MA &mdash; ${esc(p.service_types) || 'N/A'}</div>`;
+            item.addEventListener('click', () => {
+                activeId = p.id;
+                highlightListItem(p.id);
+                map.setView([lat, lng], 14);
+                marker.openPopup();
+            });
+            document.getElementById('providerList').appendChild(item);
+        });
+    }
+
+    function buildPopup(p) {
+        return `
+            <strong>${esc(p.name)}</strong><br>
+            <small>${esc(p.address)}<br>${esc(p.city)}, MA ${esc(p.zip_code)}</small><br>
+            ${p.phone ? `<small><i class="bi bi-telephone"></i> <a href="tel:${esc(p.phone)}">${esc(p.phone)}</a></small><br>` : ''}
+            ${p.service_types ? `<small class="text-muted">${esc(p.service_types)}</small><br>` : ''}
+            <a href="/provider/${p.id}" class="btn btn-primary btn-sm mt-1">View Details</a>`;
+    }
+
+    function highlightListItem(id) {
+        document.querySelectorAll('.provider-list-item').forEach(el => el.classList.remove('active'));
+        const el = document.querySelector(`.provider-list-item[data-id="${id}"]`);
+        if (el) { el.classList.add('active'); el.scrollIntoView({ block: 'nearest' }); }
+    }
+
+    // Filter handlers
+    function applyFilters() {
+        const text = document.getElementById('mapSearch').value.toLowerCase();
+        const serviceType = document.getElementById('mapServiceType').value.toLowerCase();
+
+        const filtered = allFeatures.filter(f => {
+            const p = f.properties;
+            const matchText = !text ||
+                (p.name || '').toLowerCase().includes(text) ||
+                (p.city || '').toLowerCase().includes(text);
+            const matchService = !serviceType ||
+                (p.service_types || '').toLowerCase().includes(serviceType);
+            return matchText && matchService;
+        });
+
+        renderProviders(filtered);
+    }
+
+    document.getElementById('mapSearch').addEventListener('input', applyFilters);
+    document.getElementById('mapServiceType').addEventListener('change', applyFilters);
+
+    function esc(str) {
+        if (str == null) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+</script>
+{% endblock %}

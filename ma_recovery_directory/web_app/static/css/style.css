@@ -1,123 +1,66 @@
-/* Custom styles for Massachusetts Recovery Services Directory */
-
 body {
     background-color: #f8f9fa;
 }
 
-.card {
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    border: 1px solid rgba(0, 0, 0, 0.125);
-}
-
+/* Service cards */
 .service-card {
-    margin-bottom: 1rem;
-    transition: transform 0.2s ease-in-out;
+    transition: transform 0.15s ease-in-out, box-shadow 0.15s;
 }
-
 .service-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.12);
 }
-
 .service-header {
-    background-color: #e9ecef;
+    background-color: #f0f4ff;
     border-bottom: 1px solid #dee2e6;
-    padding: 0.75rem 1rem;
-    font-weight: 600;
+    padding: 0.65rem 1rem;
 }
-
 .service-body {
-    padding: 1rem;
+    padding: 0.9rem 1rem;
 }
-
 .service-info {
     margin-bottom: 0.5rem;
+    font-size: 0.875rem;
 }
 
-.service-info strong {
-    color: #495057;
-}
-
+/* Badges */
 .badge-service {
-    background-color: #007bff;
-    margin-right: 0.25rem;
-    margin-bottom: 0.25rem;
+    background-color: #0d6efd;
+    color: #fff;
+    margin-right: 0.2rem;
+    margin-bottom: 0.2rem;
+    font-weight: 500;
 }
-
 .badge-language {
-    background-color: #28a745;
-    margin-right: 0.25rem;
-    margin-bottom: 0.25rem;
+    background-color: #198754;
+    color: #fff;
+    margin-right: 0.2rem;
+    margin-bottom: 0.2rem;
+    font-weight: 500;
 }
-
 .badge-population {
     background-color: #ffc107;
     color: #212529;
-    margin-right: 0.25rem;
-    margin-bottom: 0.25rem;
+    margin-right: 0.2rem;
+    margin-bottom: 0.2rem;
+    font-weight: 500;
 }
 
+/* Contact block */
 .contact-info {
     border-top: 1px solid #dee2e6;
-    padding-top: 0.75rem;
-    margin-top: 0.75rem;
+    padding-top: 0.65rem;
+    margin-top: 0.65rem;
+    font-size: 0.875rem;
 }
-
 .contact-info a {
     text-decoration: none;
 }
-
 .contact-info a:hover {
     text-decoration: underline;
 }
 
-#searchForm {
-    background-color: white;
-}
-
-.form-label {
-    font-weight: 500;
-    color: #495057;
-}
-
-.btn-primary {
-    background-color: #007bff;
-    border-color: #007bff;
-}
-
-.btn-primary:hover {
-    background-color: #0056b3;
-    border-color: #0056b3;
-}
-
-.statistics-card {
-    text-align: center;
-}
-
-.statistics-card h3 {
-    margin-bottom: 0.5rem;
-    font-weight: 700;
-}
-
-.text-primary {
-    color: #007bff !important;
-}
-
-.text-success {
-    color: #28a745 !important;
-}
-
-.text-info {
-    color: #17a2b8 !important;
-}
-
-@media (max-width: 768px) {
-    .container {
-        padding-left: 1rem;
-        padding-right: 1rem;
-    }
-    
-    .service-card {
-        margin-bottom: 1rem;
-    }
+/* Footer */
+.footer {
+    font-size: 0.8rem;
 }

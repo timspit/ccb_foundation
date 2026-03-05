@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}{{ provider.name }} — MA Recovery Directory{% endblock %}
+
+{% block head %}
+{% if provider.latitude and provider.longitude %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #provider-map { height: 260px; border-radius: 0.375rem; }
+</style>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+
+    <a href="/" class="btn btn-outline-secondary btn-sm mb-3">
+        <i class="bi bi-arrow-left me-1"></i>Back to Search
+    </a>
+
+    <div class="row g-4">
+
+        <!-- Main Info -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="h5 mb-0">{{ provider.name }}</h1>
+                </div>
+                <div class="card-body">
+
+                    <!-- Address -->
+                    <div class="mb-3">
+                        <h6 class="text-muted text-uppercase small fw-semibold mb-1">Location</h6>
+                        <p class="mb-0">
+                            <i class="bi bi-geo-alt me-1 text-primary"></i>
+                            {{ provider.address }}<br>
+                            <span class="ms-3 text-muted">{{ provider.city }}, {{ provider.state }} {{ provider.zip_code }}</span>
+                        </p>
+                    </div>
+
+                    <!-- Contact -->
+                    {% if provider.phone or provider.email or provider.website %}
+                    <div class="mb-3">
+                        <h6 class="text-muted text-uppercase small fw-semibold mb-1">Contact</h6>
+                        {% if provider.phone %}
+                        <div><i class="bi bi-telephone me-1 text-primary"></i>
+                            <a href="tel:{{ provider.phone }}">{{ provider.phone }}</a>
+                        </div>
+                        {% endif %}
+                        {% if provider.email %}
+                        <div><i class="bi bi-envelope me-1 text-primary"></i>
+                            <a href="mailto:{{ provider.email }}">{{ provider.email }}</a>
+                        </div>
+                        {% endif %}
+                        {% if provider.website %}
+                        <div><i class="bi bi-globe me-1 text-primary"></i>
+                            <a href="{{ provider.website }}" target="_blank" rel="noopener">{{ provider.website }}</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Services -->
+                    {% if provider.service_types %}
+                    <div class="mb-3">
+                        <h6 class="text-muted text-uppercase small fw-semibold mb-1">Services</h6>
+                        {% for svc in provider.service_types.split(',') %}
+                        <span class="badge badge-service me-1 mb-1">{{ svc.strip() }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Hours -->
+                    {% if provider.hours and provider.hours not in ('', 'nan') %}
+                    <div class="mb-3">
+                        <h6 class="text-muted text-uppercase small fw-semibold mb-1">Hours</h6>
+                        <p class="mb-0"><i class="bi bi-clock me-1 text-primary"></i>{{ provider.hours }}</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Populations -->
+                    {% if provider.populations_served and provider.populations_served not in ('', 'nan') %}
+                    <div class="mb-3">
+                        <h6 class="text-muted text-uppercase small fw-semibold mb-1">Populations Served</h6>
+                        {% for pop in provider.populations_served.split(',') %}
+                        <span class="badge badge-population me-1 mb-1">{{ pop.strip() }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Languages -->
+                    {% if provider.languages and provider.languages not in ('', 'nan') %}
+                    <div class="mb-3">
+                        <h6 class="text-muted text-uppercase small fw-semibold mb-1">Languages</h6>
+                        {% for lang in provider.languages.split(',') %}
+                        <span class="badge badge-language me-1 mb-1">{{ lang.strip() }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Eligibility -->
+                    {% if provider.eligibility and provider.eligibility not in ('', 'nan') %}
+                    <div class="mb-3">
+                        <h6 class="text-muted text-uppercase small fw-semibold mb-1">Eligibility</h6>
+                        <p class="mb-0"><i class="bi bi-person-check me-1 text-primary"></i>{{ provider.eligibility }}</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Payment -->
+                    {% if provider.payment_options and provider.payment_options not in ('', 'nan') %}
+                    <div class="mb-3">
+                        <h6 class="text-muted text-uppercase small fw-semibold mb-1">Payment Options</h6>
+                        <p class="mb-0"><i class="bi bi-credit-card me-1 text-primary"></i>{{ provider.payment_options }}</p>
+                    </div>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar: Map + Meta -->
+        <div class="col-lg-4">
+
+            {% if provider.latitude and provider.longitude %}
+            <div class="card mb-4">
+                <div class="card-header fw-semibold small">Location Map</div>
+                <div class="card-body p-2">
+                    <div id="provider-map"></div>
+                </div>
+                <div class="card-footer">
+                    <a href="/map#{{ provider.id }}" class="btn btn-sm btn-outline-primary w-100">
+                        <i class="bi bi-map me-1"></i>View on Full Map
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="card">
+                <div class="card-header fw-semibold small">About This Listing</div>
+                <div class="card-body small text-muted">
+                    <div><strong>Data Source:</strong> {{ provider.data_source or 'N/A' }}</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if provider.latitude and provider.longitude %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    const lat = {{ provider.latitude }};
+    const lng = {{ provider.longitude }};
+    const miniMap = L.map('provider-map', { zoomControl: true, scrollWheelZoom: false })
+        .setView([lat, lng], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(miniMap);
+    L.marker([lat, lng])
+        .addTo(miniMap)
+        .bindPopup(`<strong>{{ provider.name | e }}</strong>`)
+        .openPopup();
+</script>
+{% endif %}
+{% endblock %}
