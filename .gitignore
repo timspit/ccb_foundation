@@ -42,12 +42,14 @@ pip-delete-this-directory.txt
 logs/
 
 # Data and temporary files
-*.csv
 *.xlsx
 *.pdf
 data/exports/
 data/backups/
 *.tmp
+# Allow committed provider data CSVs (ma_recovery_directory/data/*.csv are tracked)
+# Exclude any auto-generated exports
+temp_export.csv
 
 # Environment variables
 .env

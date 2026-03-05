@@ -65,11 +65,10 @@ coverage.xml
 # Documentation
 docs/_build/
 
-# Data files (if large)
-data/
-*.csv
+# Exclude large generated files but keep provider data
 *.xlsx
-*.json
+data/exports/
+data/backups/
 
 # Environment files
 .env
