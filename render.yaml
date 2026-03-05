@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: ma-recovery-directory
+    env: docker
+    dockerfilePath: ./ma_recovery_directory/Dockerfile
+    dockerContext: ./ma_recovery_directory
+    plan: free
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
